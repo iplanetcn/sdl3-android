@@ -8,6 +8,7 @@ and may not be redistributed without written permission.*/
 #include <string>
 //#include <cstdio>
 //#include <cstring>
+//Texture wrapper class
 
 int main(int argc, char *argv[]) {
     (void)argc;
@@ -27,12 +28,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-
-
-
-//Texture wrapper class
 //#define toggle false
-
 #if defined(toggle)
 class LTexture {
 public:
@@ -43,7 +39,7 @@ public:
     ~LTexture();
 
     //Loads image at specified path
-    bool loadFromFile(const std::string& path);
+    bool loadFromFile(const std::string &path);
 
 #if defined(_SDL_TTF_H) || defined(SDL_TTF_H)
     //Creates image from font string
@@ -66,8 +62,9 @@ public:
     void setAlpha(Uint8 alpha);
 
     //Renders texture at given point
-    void render(int x, int y, SDL_Rect *clip = nullptr, double angle = 0.0, SDL_Point *center = nullptr,
-                SDL_FlipMode flip = SDL_FLIP_NONE);
+    void
+    render(int x, int y, SDL_Rect *clip = nullptr, double angle = 0.0, SDL_Point *center = nullptr,
+           SDL_FlipMode flip = SDL_FLIP_NONE);
 
     //Set self as render target
     void setAsRenderTarget();
@@ -136,7 +133,7 @@ LTexture::~LTexture() {
     free();
 }
 
-bool LTexture::loadFromFile(const std::string& path) {
+bool LTexture::loadFromFile(const std::string &path) {
     //Get rid of preexisting texture
     free();
 
@@ -164,7 +161,9 @@ bool LTexture::loadFromFile(const std::string& path) {
                 SDL_SetTextureBlendMode(newTexture, SDL_BLENDMODE_BLEND);
 
                 //Lock texture for manipulation
-                SDL_LockTexture(newTexture, &formattedSurface->clip_rect, &mPixels, &mPitch);
+                SDL_Rect clipRect;
+                SDL_GetSurfaceClipRect(formattedSurface, &clipRect);
+                SDL_LockTexture(newTexture, &clipRect, &mPixels, &mPitch);
 
                 //Copy loaded/formatted surface pixels
                 memcpy(mPixels, formattedSurface->pixels,
@@ -178,9 +177,12 @@ bool LTexture::loadFromFile(const std::string& path) {
                 auto *pixels = (Uint32 *) mPixels;
                 int pixelCount = (mPitch / 4) * mHeight;
 
+
+                SDL_PixelFormatDetails pfd = {formattedSurface->format};
+
                 //Map colors
-                Uint32 colorKey = SDL_MapRGB(formattedSurface->format, 0, 0xFF, 0xFF);
-                Uint32 transparent = SDL_MapRGBA(formattedSurface->format, 0x00, 0xFF, 0xFF, 0x00);
+                Uint32 colorKey = SDL_MapRGB(&pfd, nullptr, 0, 0xFF, 0xFF);
+                Uint32 transparent = SDL_MapRGBA(&pfd, nullptr, 0x00, 0xFF, 0xFF, 0x00);
 
                 //Color key pixels
                 for (int i = 0; i < pixelCount; ++i) {
@@ -287,7 +289,7 @@ void LTexture::setAlpha(Uint8 alpha) {
 void LTexture::render(int x, int y, SDL_Rect *clip, double angle, SDL_Point *center,
                       SDL_FlipMode flip) {
     //Set rendering space and render to screen
-    SDL_Rect renderQuad = {x, y, mWidth, mHeight};
+    SDL_FRect renderQuad = {(float) x, (float) y, (float) mWidth, (float) mHeight};
 
     //Set clip rendering dimensions
     if (clip != nullptr) {
@@ -295,8 +297,10 @@ void LTexture::render(int x, int y, SDL_Rect *clip, double angle, SDL_Point *cen
         renderQuad.h = clip->h;
     }
 
+    SDL_FRect fRect = {(float) clip->x, (float) clip->y, (float) clip->w, (float) clip->h};
+    SDL_FPoint fCenter = {(float) center->x, (float) center->y};
     //Render to screen
-    SDL_RenderCopyEx(gRenderer, mTexture, clip, &renderQuad, angle, center, flip);
+    SDL_RenderTextureRotated(gRenderer, mTexture, &fRect, &renderQuad, angle, &fCenter, flip);
 }
 
 void LTexture::setAsRenderTarget() {
@@ -378,31 +382,26 @@ bool init() {
     bool success = true;
 
     //Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
         success = false;
     } else {
-        //Set texture filtering to linear
-        if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1")) {
-            SDL_Log("Warning: Linear texture filtering not enabled!");
-        }
-
         //Get device display mode
-        SDL_DisplayMode displayMode;
-        if (SDL_GetCurrentDisplayMode(0, &displayMode) == 0) {
-            gScreenRect.w = displayMode.w;
-            gScreenRect.h = displayMode.h;
+        auto displayMode = SDL_GetCurrentDisplayMode(0);
+        if (displayMode == 0) {
+            gScreenRect.w = displayMode->w;
+            gScreenRect.h = displayMode->h;
         }
 
         //Create window
-        gWindow = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                   gScreenRect.w, gScreenRect.h, SDL_WINDOW_SHOWN);
+        gWindow = SDL_CreateWindow("SDL Tutorial", gScreenRect.w, gScreenRect.h,
+                                   SDL_WINDOW_FULLSCREEN);
         if (gWindow == nullptr) {
             SDL_Log("Window could not be created! SDL Error: %s\n", SDL_GetError());
             success = false;
         } else {
             //Create renderer for window
-            gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+            gRenderer = SDL_CreateRenderer(gWindow, "render");
             if (gRenderer == nullptr) {
                 SDL_Log("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
                 success = false;
@@ -466,8 +465,7 @@ int main(int argc, char *args[]) {
                     if (e.type == SDL_EVENT_QUIT) {
                         quit = true;
                     } else if (e.type == SDL_EVENT_KEY_DOWN) {
-                        if ((e.key.keysym.sym == SDLK_AC_BACK) ||
-                            (e.key.keysym.sym == SDLK_ESCAPE)) {
+                        if ((e.key.key == SDLK_AC_BACK) || (e.key.key == SDLK_ESCAPE)) {
                             quit = true;
                         }
                     } else if (e.type == SDL_EVENT_FINGER_DOWN) {
@@ -494,6 +492,5 @@ int main(int argc, char *args[]) {
 
     return 0;
 }
-
 
 #endif

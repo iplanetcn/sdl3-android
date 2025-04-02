@@ -5,8 +5,7 @@ versionCode = "1"
 compileSdk = "35"
 minSdk = "21"
 targetSdk = "35"
-#ndk = "28.0.13004108"
-ndk = "25.2.9519653"
+ndk = "28.0.13004108"
 
 # libs
 agp = "8.9.1"
