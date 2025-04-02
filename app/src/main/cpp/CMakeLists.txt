@@ -1,28 +1,33 @@
-# For more information about using CMake with Android Studio, read the
-# documentation: https://d.android.com/studio/projects/add-native-code.html
+cmake_minimum_required(VERSION 3.31.6)
 
-cmake_minimum_required(VERSION 3.22.1)
+project("GAME")
 
-project("sdl3")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_TOOLCHAIN_FILE ${ANDROID_NDK}/build/cmake/android.toolchain.cmake)
 
-# Creates your game shared library. The name must be the same as the
-# one used for loading in your Kotlin/Java or AndroidManifest.txt files.
-add_library(sdl3 SHARED
-        main.cpp
-        AndroidOut.cpp
-        Renderer.cpp
-        Shader.cpp
-        TextureAsset.cpp
-        Utility.cpp)
 
-# Searches for a package provided by the game activity dependency
-find_package(game-activity REQUIRED CONFIG)
+add_subdirectory(SDL)
+add_subdirectory(SDL_image)
+#add_subdirectory(SDL_mixer)
+#add_subdirectory(SDL_ttf)
 
-# Configure libraries CMake uses to link your target library.
-target_link_libraries(sdl3
-        # The game activity
-        game-activity::game-activity
+include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/SDL/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/SDL_image/include
+#        ${CMAKE_CURRENT_SOURCE_DIR}/SDL_mixer/include
+#        ${CMAKE_CURRENT_SOURCE_DIR}/SDL_ttf/include
+)
 
+add_library(main SHARED)
+
+target_sources(main PRIVATE main.cpp)
+
+target_link_libraries(main
+        SDL3::SDL3
+        SDL3_image::SDL3_image
+#        SDL3_mixer::SDL3_mixer
+#        SDL3_ttf::SDL3_ttf
         # EGL and other dependent libraries required for drawing
         # and interacting with Android system
         EGL

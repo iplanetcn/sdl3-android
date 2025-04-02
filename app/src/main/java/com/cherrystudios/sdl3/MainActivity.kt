@@ -3,13 +3,11 @@ package com.cherrystudios.sdl3
 import android.view.View
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import com.google.androidgamesdk.GameActivity
+import org.libsdl.app.SDLActivity
 
-class MainActivity : GameActivity() {
-    companion object {
-        init {
-            System.loadLibrary("sdl3")
-        }
+class MainActivity : SDLActivity() {
+    override fun getLibraries(): Array<String> {
+        return arrayOf("SDL3", "SDL3_image", "main")
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

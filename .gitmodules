@@ -1,0 +1,12 @@
+[submodule "app/src/main/cpp/SDL"]
+	path = app/src/main/cpp/SDL
+	url = git@github.com:libsdl-org/SDL.git
+[submodule "app/src/main/cpp/SDL_image"]
+	path = app/src/main/cpp/SDL_image
+	url = git@github.com:libsdl-org/SDL_image.git
+[submodule "app/src/main/cpp/SDL_ttf"]
+	path = app/src/main/cpp/SDL_ttf
+	url = git@github.com:libsdl-org/SDL_ttf.git
+[submodule "app/src/main/cpp/SDL_mixer"]
+	path = app/src/main/cpp/SDL_mixer
+	url = git@github.com:libsdl-org/SDL_mixer.git

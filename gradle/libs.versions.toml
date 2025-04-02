@@ -3,9 +3,10 @@
 versionName = "1.0"
 versionCode = "1"
 compileSdk = "35"
-minSdk = "30"
+minSdk = "21"
 targetSdk = "35"
-ndk = "28.0.13004108"
+#ndk = "28.0.13004108"
+ndk = "25.2.9519653"
 
 # libs
 agp = "8.9.1"
@@ -16,7 +17,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
-gamesActivity = "1.2.2"
+gamesActivity = "4.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
