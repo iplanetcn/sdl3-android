@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
         return(2);
     }
 
-    surface = IMG_Load("android_robot.png");
+    surface = IMG_Load("image/android_robot.png");
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     if (!texture) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load texture: %s", SDL_GetError());
